@@ -1,0 +1,26 @@
+name: Update playlist
+
+on:
+  schedule:
+    - cron: "0 4 * * *"   # щодня о 04:00 UTC
+  workflow_dispatch:       # ручний запуск з вкладки Actions
+
+permissions:
+  contents: write
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python merge.py
+      - name: Commit if changed
+        run: |
+          git config user.name "github-actions"
+          git config user.email "actions@github.com"
+          git add playlist.m3u
+          git diff --cached --quiet || git commit -m "Update playlist $(date -u +%F)"
+          git push
