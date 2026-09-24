@@ -4,6 +4,10 @@ on:
   schedule:
     - cron: "0 4 * * *"   # щодня о 04:00 UTC
   workflow_dispatch:       # ручний запуск з вкладки Actions
+  push:                    # перезбирати при зміні скрипта
+    paths:
+      - merge.py
+      - .github/workflows/update.yml
 
 permissions:
   contents: write
