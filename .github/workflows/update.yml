@@ -4,9 +4,10 @@ on:
   schedule:
     - cron: "0 4 * * *"   # щодня о 04:00 UTC
   workflow_dispatch:       # ручний запуск з вкладки Actions
-  push:                    # перезбирати при зміні скрипта
+  push:                    # перезбирати при зміні скриптів
     paths:
       - merge.py
+      - gen_epg.py
       - .github/workflows/update.yml
 
 permissions:
@@ -15,16 +16,38 @@ permissions:
 jobs:
   update:
     runs-on: ubuntu-latest
+    timeout-minutes: 120
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - run: python merge.py
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Playlist
+        run: python merge.py
+
+      # Телепрограма: якщо цей етап впаде, плейлист однаково оновиться
+      - name: EPG
+        continue-on-error: true
+        run: |
+          git clone --depth 1 -b master https://github.com/iptv-org/epg.git /tmp/epg
+          python gen_epg.py playlist.m3u /tmp/epg/sites /tmp/custom.channels.xml
+          cd /tmp/epg
+          npm ci --no-audit --no-fund
+          npm run grab --- --channels=/tmp/custom.channels.xml \
+            --output=/tmp/guide.xml --gzip="$GITHUB_WORKSPACE/guide.xml.gz" \
+            --days=3 --maxConnections=10 --timeout=15000
+        env:
+          NODE_OPTIONS: --max-old-space-size=4096
       - name: Commit if changed
         run: |
           git config user.name "github-actions"
           git config user.email "actions@github.com"
           git add playlist.m3u
+          [ -f guide.xml.gz ] && git add guide.xml.gz
           git diff --cached --quiet || git commit -m "Update playlist $(date -u +%F)"
           git push
