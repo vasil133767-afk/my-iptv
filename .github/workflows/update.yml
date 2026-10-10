@@ -30,19 +30,29 @@ jobs:
       - name: Playlist
         run: python merge.py
 
-      # Телепрограма: якщо цей етап впаде, плейлист однаково оновиться
-      - name: EPG
+      # Телепрограма: якщо ці кроки впадуть, плейлист однаково оновиться
+      - name: EPG prepare
+        id: epg
         continue-on-error: true
         run: |
           git clone --depth 1 -b master https://github.com/iptv-org/epg.git /tmp/epg
-          python gen_epg.py playlist.m3u /tmp/epg/sites /tmp/custom.channels.xml
+          python gen_epg.py prepare playlist.m3u /tmp/epg/sites /tmp/custom.channels.xml | tee /tmp/prepare.log
+          grep '^grab_needed=' /tmp/prepare.log >> "$GITHUB_OUTPUT"
+
+      - name: EPG grab (дрібні сайти)
+        if: steps.epg.outputs.grab_needed == 'true'
+        continue-on-error: true
+        run: |
           cd /tmp/epg
           npm ci --no-audit --no-fund
-          npm run grab --- --channels=/tmp/custom.channels.xml \
-            --output=/tmp/guide.xml --gzip="$GITHUB_WORKSPACE/guide.xml.gz" \
-            --days=3 --maxConnections=10 --timeout=15000
-        env:
-          NODE_OPTIONS: --max-old-space-size=4096
+          npm run grab --- --channels=/tmp/custom.channels.xml --output=/tmp/grab.xml \
+            --days=3 --maxConnections=3 --timeout=15000
+
+      - name: EPG build
+        if: steps.epg.outcome == 'success'
+        continue-on-error: true
+        run: python gen_epg.py build /tmp/custom.channels.xml /tmp/grab.xml guide.xml.gz
+
       - name: Commit if changed
         run: |
           git config user.name "github-actions"
