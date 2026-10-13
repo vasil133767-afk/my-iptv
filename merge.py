@@ -20,6 +20,7 @@ SOURCES = {
     "Росія": [
         "https://raw.githubusercontent.com/Free-TV/IPTV/master/playlists/playlist_russia.m3u8",
         "https://iptv-org.github.io/iptv/countries/ru.m3u",
+        "sources/iptvru.m3u",  # ефірні та регіональні канали (файл у цьому репозиторії)
     ],
 }
 # Власні канали, яких немає в джерелах: група -> [(назва, посилання), ...]
@@ -46,6 +47,9 @@ relay_on = False
 
 
 def fetch(url):
+    if not url.startswith("http"):  # файл у репозиторії
+        with open(url, encoding="utf-8", errors="replace") as f:
+            return f.read().splitlines()
     req = urllib.request.Request(url, headers={"User-Agent": DEFAULT_UA})
     with urllib.request.urlopen(req, timeout=60) as r:
         return r.read().decode("utf-8", errors="replace").splitlines()
@@ -86,6 +90,15 @@ def channel_key(extinf):
     name = extinf.rsplit(",", 1)[-1]
     name = re.sub(r"\(.*?\)|\[.*?\]|[ⓈⒼⓎⓋⓄ]", "", name)
     return re.sub(r"\W+", "", name).lower()
+
+
+def name_key(extinf):
+    """Назва без «HD», дужок і розділових знаків: щоб «Первый канал HD» з одного
+    джерела і «Первый канал» з іншого вважались одним каналом."""
+    name = extinf.rsplit(",", 1)[-1].lower()
+    name = re.sub(r"\(.*?\)|\[.*?\]|[ⓈⒼⓎⓋⓄ]", "", name)
+    name = re.sub(r"\b(hd|fhd|uhd|sd|4k)\b", "", name)
+    return re.sub(r"\W+", "", name)
 
 
 def set_group(extinf, group):
@@ -181,7 +194,7 @@ def main():
     blocked = load_blocklist()
     skipped = 0
     # канали: (група, ключ) -> список кандидатів у порядку пріоритету
-    channels, order, seen_urls = {}, [], set()
+    channels, order, seen_urls, by_name = {}, [], set(), {}
     for group, urls in SOURCES.items():
         for src in urls + [None]:
             if src is None:  # власні канали з EXTRA після всіх джерел групи
@@ -200,6 +213,11 @@ def main():
                 if key[1] in blocked:
                     skipped += 1
                     continue
+                # той самий канал з іншого джерела (інший tvg-id, але та сама назва)
+                nk = (group, name_key(block[0]))
+                if key not in channels and nk[1] and nk in by_name:
+                    key = by_name[nk]
+                by_name.setdefault(nk, key)
                 if key not in channels:
                     channels[key] = []
                     order.append(key)
