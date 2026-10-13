@@ -13,6 +13,11 @@ on:
 permissions:
   contents: write
 
+# Не запускати два оновлення одночасно: інакше друге не зможе зберегти результат
+concurrency:
+  group: update-playlist
+  cancel-in-progress: false
+
 jobs:
   update:
     runs-on: ubuntu-latest
