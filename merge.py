@@ -22,6 +22,14 @@ SOURCES = {
         "https://iptv-org.github.io/iptv/countries/ru.m3u",
     ],
 }
+# Власні канали, яких немає в джерелах: група -> [(назва, посилання), ...]
+# «Россия 1» в інших часових поясах (офіційні потоки smotrim.ru, номер потоку 1–9).
+# Номер потоку = зсув від Москви в годинах (+1 … +9).
+R1_LOGO = "https://upload.wikimedia.org/wikipedia/commons/thumb/6/64/Russia-1.svg/960px-Russia-1.svg.png"
+EXTRA = {
+    "Росія": [(f"Россия 1 HD +{n}", f"https://live.smotrim.ru/vgtrk/{n}/russia1-hd/index.m3u8")
+              for n in range(1, 10)],
+}
 OUTPUT = "playlist.m3u"
 BLOCKLIST = "https://iptv-org.github.io/api/blocklist.json"
 # телепрограма, яку генерує gen_epg.py у цьому ж репозиторії
@@ -61,11 +69,20 @@ def parse(lines):
     return items
 
 
+def extra_items(group):
+    return [([f'#EXTINF:-1 tvg-name="{name}" tvg-logo="{R1_LOGO}" group-title="{group}",{name}'], url)
+            for name, url in EXTRA.get(group, [])]
+
+
 def channel_key(extinf):
-    """Ключ для пошуку дублікатів: tvg-id без суфікса @SD/@HD, інакше назва."""
+    """Ключ для пошуку дублікатів: tvg-id без суфікса @SD/@HD, інакше назва.
+    Версії з іншим часовим поясом (@Plus2, @Plus4, ...) — окремі канали."""
     m = re.search(r'tvg-id="([^"]+)"', extinf)
     if m:
-        return m.group(1).split("@")[0].lower()
+        base, _, feed = m.group(1).partition("@")
+        if re.fullmatch(r"(Plus|Minus)\d+", feed, re.I):
+            return f"{base}@{feed}".lower()
+        return base.lower()
     name = extinf.rsplit(",", 1)[-1]
     name = re.sub(r"\(.*?\)|\[.*?\]|[ⓈⒼⓎⓋⓄ]", "", name)
     return re.sub(r"\W+", "", name).lower()
@@ -166,12 +183,15 @@ def main():
     # канали: (група, ключ) -> список кандидатів у порядку пріоритету
     channels, order, seen_urls = {}, [], set()
     for group, urls in SOURCES.items():
-        for src in urls:
-            try:
-                items = parse(fetch(src))
-            except Exception as e:
-                print(f"! не вдалося завантажити {src}: {e}")
-                continue
+        for src in urls + [None]:
+            if src is None:  # власні канали з EXTRA після всіх джерел групи
+                items = extra_items(group)
+            else:
+                try:
+                    items = parse(fetch(src))
+                except Exception as e:
+                    print(f"! не вдалося завантажити {src}: {e}")
+                    continue
             for block, url in items:
                 if url in seen_urls:
                     continue
