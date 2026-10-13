@@ -17,7 +17,8 @@
   PRIVATE_FILE    файл на сервері (за замовчуванням /opt/iptv-relay/private.m3u)
   PRIVATE_URL     або посилання на плейлист провайдера (з токеном) — тоді
                   сервер сам підтягує свіжу версію кожні 10 хвилин
-VIP-канали йдуть першими, своїми групами, напряму (не через сервер).
+  PRIVATE_RELAY   1 (за замовчуванням) — VIP-канали йдуть через сервер; 0 — напряму
+VIP-канали йдуть першими, своїми групами.
 Якщо такий самий канал є у звичайному плейлисті, звичайна копія прибирається.
 """
 import base64
@@ -40,6 +41,7 @@ PLAYLIST_TTL = 600  # кешувати плейлист 10 хвилин
 
 PRIVATE_FILE = os.environ.get("PRIVATE_FILE", "/opt/iptv-relay/private.m3u")
 PRIVATE_URL = os.environ.get("PRIVATE_URL", "").strip()
+PRIVATE_RELAY = os.environ.get("PRIVATE_RELAY", "1").strip() != "0"  # 0 — VIP напряму
 
 _cache = {"time": 0.0, "text": ""}
 _private = {"time": 0.0, "text": ""}
@@ -163,10 +165,15 @@ async def playlist(request):
     header = next((l.strip() for l in _cache["text"].splitlines() if l.startswith("#EXTM3U")), "#EXTM3U")
     out, relayed, dropped = [header], 0, 0
 
-    # 1) VIP-канали першими, як є (свої групи, напряму)
+    # 1) VIP-канали першими, своїми групами; за замовчуванням теж через сервер
     vip = parse_m3u(await load_private(session))
     vip_names = {name_key(b[0]) for b, _ in vip} - {""}
     for block, url in vip:
+        if PRIVATE_RELAY and url.startswith("http"):
+            hdrs = channel_headers(block)
+            block = [block[0]] + [b for b in block[1:] if not b.startswith("#EXTVLCOPT")]
+            url = relay_link(base, url, hdrs)
+            relayed += 1
         out.extend(block + [url])
 
     # 2) звичайний плейлист без каналів, які вже є у VIP
