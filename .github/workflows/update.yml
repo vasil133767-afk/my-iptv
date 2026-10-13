@@ -28,6 +28,8 @@ jobs:
           node-version: 22
 
       - name: Playlist
+        env:
+          RELAY_BASE: ${{ secrets.RELAY_BASE }}
         run: python merge.py
 
       # Телепрограма: якщо ці кроки впадуть, плейлист однаково оновиться
