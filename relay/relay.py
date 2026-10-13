@@ -12,6 +12,13 @@
   PORT            порт (8080)
   UPSTREAM_PROXY  необов'язково: http://IP:порт або socks5://IP:порт,
                   через який сервер сам ходитиме за потоками
+
+Приватний (VIP) список — ваші платні канали, які не повинні потрапити на GitHub:
+  PRIVATE_FILE    файл на сервері (за замовчуванням /opt/iptv-relay/private.m3u)
+  PRIVATE_URL     або посилання на плейлист провайдера (з токеном) — тоді
+                  сервер сам підтягує свіжу версію кожні 10 хвилин
+VIP-канали йдуть першими, своїми групами, напряму (не через сервер).
+Якщо такий самий канал є у звичайному плейлисті, звичайна копія прибирається.
 """
 import base64
 import json
@@ -31,7 +38,56 @@ UPSTREAM_PROXY = os.environ.get("UPSTREAM_PROXY", "").strip()
 DEFAULT_UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
 PLAYLIST_TTL = 600  # кешувати плейлист 10 хвилин
 
+PRIVATE_FILE = os.environ.get("PRIVATE_FILE", "/opt/iptv-relay/private.m3u")
+PRIVATE_URL = os.environ.get("PRIVATE_URL", "").strip()
+
 _cache = {"time": 0.0, "text": ""}
+_private = {"time": 0.0, "text": ""}
+
+
+def name_key(extinf: str) -> str:
+    """Назва каналу без «HD», дужок і розділових знаків — для пошуку дублів."""
+    name = extinf.rsplit(",", 1)[-1].lower()
+    name = re.sub(r"\(.*?\)|\[.*?\]|[ⓈⒼⓎⓋⓄ]", "", name)
+    name = re.sub(r"\b(hd|fhd|uhd|sd|4k)\b", "", name)
+    return re.sub(r"\W+", "", name)
+
+
+def parse_m3u(text: str):
+    """Список (блок рядків #EXTINF/#EXTVLCOPT/..., посилання)."""
+    items, block = [], []
+    for line in text.splitlines():
+        s = line.strip()
+        if not s or s.startswith("#EXTM3U"):
+            continue
+        if s.startswith("#EXTINF"):
+            block = [s]
+        elif s.startswith("#"):
+            if block:
+                block.append(s)
+        elif block:
+            items.append((block, s))
+            block = []
+    return items
+
+
+async def load_private(session) -> str:
+    """Текст VIP-списку: з PRIVATE_URL (з кешем) або з PRIVATE_FILE."""
+    if PRIVATE_URL:
+        if time.time() - _private["time"] > PLAYLIST_TTL or not _private["text"]:
+            try:
+                async with session.get(PRIVATE_URL, headers={"User-Agent": DEFAULT_UA}) as r:
+                    if r.status == 200:
+                        _private["text"] = await r.text(errors="replace")
+                        _private["time"] = time.time()
+            except Exception:
+                pass  # лишається попередня версія
+        return _private["text"]
+    try:
+        with open(PRIVATE_FILE, encoding="utf-8", errors="replace") as f:
+            return f.read()
+    except OSError:
+        return ""
 
 
 # ---------- кодування адрес ----------
@@ -104,29 +160,31 @@ async def playlist(request):
             _cache["time"] = time.time()
 
     base = base_url(request)
-    out, block, relayed = [], [], 0
-    for line in _cache["text"].splitlines():
-        s = line.strip()
-        if not s:
+    header = next((l.strip() for l in _cache["text"].splitlines() if l.startswith("#EXTM3U")), "#EXTM3U")
+    out, relayed, dropped = [header], 0, 0
+
+    # 1) VIP-канали першими, як є (свої групи, напряму)
+    vip = parse_m3u(await load_private(session))
+    vip_names = {name_key(b[0]) for b, _ in vip} - {""}
+    for block, url in vip:
+        out.extend(block + [url])
+
+    # 2) звичайний плейлист без каналів, які вже є у VIP
+    for block, url in parse_m3u(_cache["text"]):
+        if name_key(block[0]) in vip_names:
+            dropped += 1
             continue
-        if s.startswith("#EXTM3U"):
-            out.append(s)
-        elif s.startswith("#EXTINF"):
-            block = [s]
-        elif s.startswith("#"):
-            block.append(s)
-        elif block:
-            m = re.search(r'group-title="([^"]*)"', block[0])
-            if m and m.group(1) in RELAY_GROUPS and s.startswith("http"):
-                hdrs = channel_headers(block)
-                # тюнеру більше не треба підставляти UA/referrer — це робить сервер
-                block = [block[0]] + [b for b in block[1:] if not b.startswith("#EXTVLCOPT")]
-                s = relay_link(base, s, hdrs)
-                relayed += 1
-            out.extend(block + [s])
-            block = []
+        m = re.search(r'group-title="([^"]*)"', block[0])
+        if m and m.group(1) in RELAY_GROUPS and url.startswith("http"):
+            hdrs = channel_headers(block)
+            # тюнеру більше не треба підставляти UA/referrer — це робить сервер
+            block = [block[0]] + [b for b in block[1:] if not b.startswith("#EXTVLCOPT")]
+            url = relay_link(base, url, hdrs)
+            relayed += 1
+        out.extend(block + [url])
     return web.Response(text="\n".join(out) + "\n", content_type="audio/x-mpegurl",
-                        headers={"X-Relayed-Channels": str(relayed)})
+                        headers={"X-Relayed-Channels": str(relayed), "X-VIP-Channels": str(len(vip)),
+                                 "X-Duplicates-Removed": str(dropped)})
 
 
 def rewrite_m3u8(text: str, src: str, base: str, headers: dict) -> str:
