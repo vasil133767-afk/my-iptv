@@ -2,10 +2,12 @@
 Free-TV/IPTV (відібрані канали, пріоритет) та iptv-org/iptv (решта).
 Для кожного каналу перевіряє всі відомі посилання й бере перше робоче,
 тож якщо посилання Free-TV впало, підставляється запасне з iptv-org."""
+import base64
 import json
 import os
 import re
 import urllib.error
+import urllib.parse
 import urllib.request
 from concurrent.futures import ThreadPoolExecutor
 
@@ -28,6 +30,11 @@ EPG_URL = f"https://raw.githubusercontent.com/{REPO}/main/guide.xml.gz"
 TIMEOUT = 10
 WORKERS = 40
 DEFAULT_UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
+# Ретранслятор в Амстердамі (секрет RELAY_BASE у GitHub, вигляду http://IP:8080/КЛЮЧ).
+# Канали з RELAY_GROUPS перевіряються через нього, тобто так, як їх дивиться тюнер.
+RELAY_BASE = os.environ.get("RELAY_BASE", "").strip().rstrip("/")
+RELAY_GROUPS = {"Росія"}
+relay_on = False
 
 
 def fetch(url):
@@ -82,16 +89,58 @@ def headers_for(block):
     return h
 
 
+def b64(s):
+    return base64.urlsafe_b64encode(s.encode()).decode().rstrip("=")
+
+
+def relay_url(url, block):
+    """Те саме посилання, що формує ретранслятор (relay.py)."""
+    path = urllib.parse.urlparse(url).path.lower()
+    ext = ".m3u8" if path.endswith((".m3u8", ".m3u")) else os.path.splitext(path)[1][:6]
+    h = {k: v for k, v in headers_for(block).items() if not (k == "User-Agent" and v == DEFAULT_UA)}
+    link = f"{RELAY_BASE}/s/{b64(url)}{ext}"
+    if h:
+        link += "?h=" + b64(json.dumps(h, separators=(",", ":")))
+    return link
+
+
+def check_relay():
+    """Чи доступний ретранслятор; якщо ні — перевірка йде напряму, як раніше."""
+    if not RELAY_BASE:
+        print("RELAY_BASE не задано: усі канали перевіряються напряму з GitHub")
+        return False
+    try:
+        req = urllib.request.Request(RELAY_BASE + "/playlist.m3u", headers={"User-Agent": DEFAULT_UA})
+        with urllib.request.urlopen(req, timeout=30) as r:
+            r.read(100)
+    except Exception as e:
+        print(f"! ретранслятор не відповідає ({type(e).__name__}): перевірка напряму")
+        return False
+    print("Канали груп " + ", ".join(sorted(RELAY_GROUPS)) + " перевіряються через ретранслятор")
+    return True
+
+
+def group_of(block):
+    m = re.search(r'group-title="([^"]*)"', block[0])
+    return m.group(1) if m else ""
+
+
 def is_alive(item):
     block, url = item
     if not url.startswith("http"):
         return True
-    req = urllib.request.Request(url, headers=headers_for(block))
+    via_relay = relay_on and group_of(block) in RELAY_GROUPS
+    if via_relay:
+        req = urllib.request.Request(relay_url(url, block), headers={"User-Agent": DEFAULT_UA})
+    else:
+        req = urllib.request.Request(url, headers=headers_for(block))
     try:
-        with urllib.request.urlopen(req, timeout=TIMEOUT) as r:
+        with urllib.request.urlopen(req, timeout=TIMEOUT * 2 if via_relay else TIMEOUT) as r:
             data = r.read(2048)
             return not (".m3u8" in url and b"#EXT" not in data)
     except urllib.error.HTTPError as e:
+        if via_relay:
+            return False  # не працює навіть з Амстердама, у тюнері теж не піде
         # 403/451 — часто блок за регіоном серверів GitHub (США); у вас може працювати
         return e.code in (403, 451)
     except Exception:
@@ -110,6 +159,8 @@ def load_blocklist():
 
 
 def main():
+    global relay_on
+    relay_on = check_relay()
     blocked = load_blocklist()
     skipped = 0
     # канали: (група, ключ) -> список кандидатів у порядку пріоритету
