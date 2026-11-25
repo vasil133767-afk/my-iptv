@@ -68,8 +68,6 @@ https://dash4.antik.sk/live/test_uatv/playlist.m3u8
 http://streamvideol1.luxnet.ua/news24/smil:news24.stream.smil/playlist.m3u8
 #EXTINF:-1 tvg-name="ДІМ" tvg-logo="https://i.imgur.com/3cjaXIF.png" tvg-id="DIM.ua" tvg-chno="3" tvg-country="UA" group-title="Україна",ДІМ
 https://dash2.antik.sk/live/telekanal_dim/playlist.m3u8
-#EXTINF:-1 tvg-name="Дніпро TV" tvg-logo="https://i.imgur.com/mbPTVh1.png" tvg-id="DniproTV.ua" tvg-chno="4" tvg-country="UA" group-title="Україна",Дніпро TV
-http://vcdn1.produck.company:1935/out/dtv/playlist.m3u8
 #EXTINF:-1 tvg-name="Telekanal RAI" tvg-logo="https://i.imgur.com/Ouv51WB.png" tvg-id="TelekanalRAI.ua" tvg-chno="6" tvg-country="UA" group-title="Україна",Telekanal RAI
 https://stream.rai.ua/rai/stream.m3u8
 #EXTINF:-1 tvg-name="CK 1" tvg-logo="https://i.imgur.com/XiXwr5h.png" tvg-id="SK1.ua" tvg-chno="8" tvg-country="UA" group-title="Україна",CK 1
@@ -97,10 +95,10 @@ http://stream.mcquack.net/259/index.m3u8
 #EXTINF:-1 tvg-id="6sotok.ua@SD" tvg-logo="https://i.imgur.com/icSN0GI.png" http-user-agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36" group-title="Україна",6 sotok (1080p)
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36
 http://stream.mcquack.net/405/index.m3u8
+#EXTINF:-1 tvg-id="6TVGorlovka.ru@SD" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/6/61/TV_6_HD_%E2%80%93_logo.png" group-title="Україна",6 TV Gorlovka (720p) [Geo-blocked]
+http://91.214.48.158:4022/udp/224.2.2.4:10000
 #EXTINF:-1 tvg-id="366TV.ua@SD" tvg-logo="https://i.imgur.com/sC0K5BZ.png" group-title="Україна",36.6 TV
 https://dash2.antik.sk/live/test_tridsatsest_hd_atktv/playlist.m3u8
-#EXTINF:-1 tvg-id="100NEWS.ua@SD" tvg-logo="https://i.imgur.com/bSXKdK5.png" group-title="Україна",100% NEWS (576p)
-http://85.238.112.40:8810/hls_sec/239.33.16.32-.m3u8
 #EXTINF:-1 tvg-id="555.ru@SD" tvg-logo="https://i.imgur.com/JQZkxeA.png" group-title="Україна",555 (720p)
 http://trk555.tv:8888/live
 #EXTINF:-1 tvg-id="VivaLatino.ua@SD" tvg-logo="https://i.imgur.com/KRakHAq.png" group-title="Україна",¡Viva Latino! (1080p)
@@ -110,8 +108,6 @@ http://stream.mcquack.net/285/index.m3u8
 https://ext.cdn.nashnet.tv/228.0.2.165/index.m3u8
 #EXTINF:-1 tvg-id="ATR.ua@SD" tvg-logo="https://i.imgur.com/lRJAXC7.png" group-title="Україна",ATR (1080p)
 http://stream.mcquack.net/244/index.m3u8
-#EXTINF:-1 tvg-id="Avers.ua@SD" tvg-logo="https://i.imgur.com/rHHz94D.png" group-title="Україна",Avers (480p)
-https://avers.pp.ua/hls/efir.m3u8
 #EXTINF:-1 tvg-id="Bigudi.ua@SD" tvg-logo="https://i.imgur.com/dy9ZKG1.png" http-user-agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36" group-title="Україна",Bigudi (576p)
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36
 http://stream.mcquack.net/340/index.m3u8
@@ -287,8 +283,6 @@ https://peqk71plnjy.a.trbcdn.net/livemaster/w4kz7pki62_nts_tv/playlist.m3u8
 #EXTINF:-1 tvg-id="ObozrevatelTV.ua@SD" tvg-logo="https://i.imgur.com/ubldSBv.png" http-user-agent="curl/8.16.0" group-title="Україна",Obozrevatel TV
 #EXTVLCOPT:http-user-agent=curl/8.16.0
 https://ext.cdn.nashnet.tv/228.0.0.148/index.m3u8
-#EXTINF:-1 tvg-id="ObshchestvennoeNezavisimoeTelevidenie.ua@SD" tvg-logo="https://i.imgur.com/jFP50g2.png" group-title="Україна",Obshchestvennoe Nezavisimoe Televidenie (576p)
-http://85.238.112.40:8810/hls_sec/239.33.75.33-.m3u8
 #EXTINF:-1 tvg-id="OplotTV.ru@SD" tvg-logo="https://i.imgur.com/RvUkId2.png" group-title="Україна",Oplot TV SD (1080p) [Geo-blocked]
 http://31.131.139.253:9002/oplot_hd/index.m3u8
 #EXTINF:-1 tvg-id="OrbitaTV.ua@SD" tvg-logo="https://i.ibb.co/Bj4T9wB/logo-Orbita-fin14.png" group-title="Україна",Orbita TV (360p) [Not 24/7]
@@ -320,6 +314,8 @@ http://stream.mcquack.net/464/index.m3u8
 http://777905.live.tvstitch.com/playlist.m3u8?master=180&source=aHR0cDovLzE3Ni4xMjIuMTAzLjUxOjcwMDAvY2g2NS90cmFja3MtdjJhMS9tb25vLm0zdTg/bGl2ZT0xJmlwPTE3OC4xMzYuNDIuMjIwJmlkPTk0ODg2NSZzZWNyZXQ9bjF1N3VpMDYmc3NsPTEmMjF5bz0wJmU9MTc5MDcxMDcwMCZzdD1MXzZYc2M4elNra3RCaWYyVzU1dWF3
 #EXTINF:-1 tvg-id="RenomeTV.ua@SD" tvg-logo="https://i.imgur.com/qL1uNlW.png" group-title="Україна",Renome TV (576p)
 http://85.238.112.40:8810/hls_sec/online/list-renome.m3u8
+#EXTINF:-1 tvg-id="Reporter.ua@SD" tvg-logo="https://i.imgur.com/LyA3kBR.png" group-title="Україна",Reporter (720p)
+http://cdn1.live-tv.od.ua:8081/31chod/31chod-abr/31chod/31chod/playlist.m3u8
 #EXTINF:-1 tvg-id="Rivne1.ua@SD" tvg-logo="https://i.imgur.com/ytz7jYV.png" group-title="Україна",Rivne 1 (720p)
 https://cdn1.live-tv.cloud/rivne1/rivne1-abr/playlist.m3u8
 #EXTINF:-1 tvg-id="Rybalka.ua@SD" tvg-logo="https://i.imgur.com/NafW0xT.png" group-title="Україна",Rybalka (1080p)
@@ -525,16 +521,12 @@ https://xykt-fix.github.io/cinerama_edge01/hls/BOLLYWOOD_RU/Movie009.m3u8
 http://178.134.1.158:8081/BRIDGE/index.m3u8
 #EXTINF:-1 tvg-id="BRIDGEDance.ru@SD" tvg-logo="https://bridgemusic.ru/s/img/channels/dance-white.svg" group-title="Росія",BRIDGE Dance (720p) [Geo-blocked]
 https://bridgemedia-hls.cdnvideo.ru/hls/live/6aff09f290affe00013a80a9/720p.m3u8
+#EXTINF:-1 tvg-id="BRIDGEHits.ru@SD" tvg-logo="https://i.imgur.com/sIW9oR4.png" group-title="Росія",BRIDGE Hits (576p)
+http://5.188.159.128:8070/Bridge_TV_Hits/index.m3u8
 #EXTINF:-1 tvg-id="BRIDGEJazz.ru@SD" tvg-logo="https://bridgemusic.ru/s/img/channels/jazz-white.svg" group-title="Росія",BRIDGE Jazz (720p) [Geo-blocked]
 https://bridgemedia-hls.cdnvideo.ru/hls/live/6aff0a0390affe00013a80aa/720p.m3u8
-#EXTINF:-1 tvg-id="BRIDGERap.ru@SD" tvg-logo="https://bridgemusic.ru/s/img/channels/rap-logo-dark.svg" group-title="Росія",BRIDGE Rap (720p) [Geo-blocked]
-https://bridgemedia-hls.cdnvideo.ru/hls/live/6affed9990affe00013a80b1/720p.m3u8
-#EXTINF:-1 tvg-id="BRIDGERNB.ru@SD" tvg-logo="https://bridgemusic.ru/s/img/channels/rnb-logo-dark.svg" group-title="Росія",BRIDGE RNB (720p) [Geo-blocked]
-https://bridgemedia-hls.cdnvideo.ru/hls/live/6affedb990affe00013a80b2/720p.m3u8
 #EXTINF:-1 tvg-id="BRIDGERock.ru@SD" tvg-logo="https://i.imgur.com/MHuwct2.png" group-title="Росія",BRIDGE Rock (576p)
 http://178.134.1.158:8081/BRIDGEROCK/index.m3u8
-#EXTINF:-1 tvg-id="BRIDGESoul.ru@SD" tvg-logo="https://bridgemusic.ru/s/img/channels/soul-logo-dark.svg" group-title="Росія",BRIDGE Soul (720p) [Geo-blocked]
-https://bridgemedia-hls.cdnvideo.ru/hls/live/6affed7590affe00013a80b0/720p.m3u8
 #EXTINF:-1 tvg-id="BRIDGESymphony.ru@SD" tvg-logo="https://bridgemusic.ru/s/img/channels/symphony-white.svg" group-title="Росія",BRIDGE Symphony (720p) [Geo-blocked]
 https://bridgemedia-hls.cdnvideo.ru/hls/live/6aff0d2a81d78600017e02c2/720p.m3u8
 #EXTINF:-1 tvg-id="BRIDGEVostok.ru@SD" tvg-logo="https://bridgemusic.ru/s/img/channels/vostok-white.svg" group-title="Росія",BRIDGE Vostok (720p) [Geo-blocked]
@@ -763,8 +755,6 @@ https://cdn4.skygo.mn/live/disk1/Pobeda/HLSv3-FTA/Pobeda.m3u8
 https://stream8.cinerama.uz/1420/tracks-v1a1/mono.m3u8
 #EXTINF:-1 tvg-id="Prima.ru@SD" tvg-logo="https://i.imgur.com/33XGMch.png" group-title="Росія",Prima (Russia) (1080p)
 https://tele2dvrnat01-02.cdnvideo.ru/stream/NAT_Prima/hls/index.m3u8
-#EXTINF:-1 tvg-id="ProBusiness.ru@SD" tvg-logo="https://i.imgur.com/1u8KvTD.png" group-title="Росія",Pro Business (720p)
-https://tv-streaming.bsh.ru:21938/probusiness/probusiness.stream/playlist.m3u8
 #EXTINF:-1 tvg-id="Prodvizhenie.ru@SD" tvg-logo="https://i.imgur.com/KlsnfG9.png" group-title="Росія",Prodvizhenie (1080p)
 https://streaming.astrakhan.ru/proastrakhanhd/index.m3u8
 #EXTINF:-1 tvg-id="Prosveshchenie.ru@SD" tvg-logo="https://i.imgur.com/uppFhhq.png" group-title="Росія",Prosveshchenie (576p)
